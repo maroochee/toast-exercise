@@ -24,20 +24,25 @@ export function onMessage(callback) {
  * submissions. We have a flaky server and requests will fail 10
  * percent of the time.
  */
-export async function fetchLikedFormSubmissions() {
+export async function fetchLikedFormSubmissions(page=1) {
+  const messagesPerPage = 2;
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flaky server that has issues
-      if (randomPercent() < 10) {
+      if (randomPercent() < 50) {
         reject({ status: 500, message: 'server error' });
         return;
       }
 
       try {
+        const allSubmissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
+        const startIndex = (page - 1) * messagesPerPage;
+        const endIndex = startIndex + messagesPerPage;
+        const formSubmissions = allSubmissions.slice(startIndex, endIndex);
+        console.log(startIndex, endIndex, formSubmissions)
         resolve({
           status: 200,
-          formSubmissions:
-            JSON.parse(localStorage.getItem('formSubmissions')) || [],
+          formSubmissions: formSubmissions
         });
       } catch (e) {
         reject({ status: 500, message: e.message });
@@ -59,7 +64,7 @@ export async function saveLikedFormSubmission(formSubmission) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flakey server that has issues
-      if (randomPercent() < 10) {
+      if (randomPercent() < 50) {
         reject({ status: 500, message: 'server error' });
         return;
       }
@@ -110,7 +115,7 @@ export async function deleteLikedFormSubmission(id) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flakey server that has issues
-      if (randomPercent() < 10) {
+      if (randomPercent() < 50) {
         reject({ status: 500, message: 'server error' });
         return;
       }
