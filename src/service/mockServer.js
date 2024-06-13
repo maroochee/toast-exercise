@@ -24,25 +24,20 @@ export function onMessage(callback) {
  * submissions. We have a flaky server and requests will fail 10
  * percent of the time.
  */
-export async function fetchLikedFormSubmissions(page=1) {
-  const messagesPerPage = 2;
+export async function fetchLikedFormSubmissions() {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flaky server that has issues
-      if (randomPercent() < 20) {
+      if (randomPercent() < 10) {
         reject({ status: 500, message: 'server error' });
         return;
       }
 
       try {
-        const allSubmissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
-        const startIndex = (page - 1) * messagesPerPage;
-        const endIndex = startIndex + messagesPerPage;
-        const formSubmissions = allSubmissions.slice(startIndex, endIndex);
-        console.log(startIndex, endIndex, formSubmissions)
         resolve({
           status: 200,
-          formSubmissions: formSubmissions
+          formSubmissions:
+            JSON.parse(localStorage.getItem('formSubmissions')) || [],
         });
       } catch (e) {
         reject({ status: 500, message: e.message });
@@ -64,7 +59,7 @@ export async function saveLikedFormSubmission(formSubmission) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flakey server that has issues
-      if (randomPercent() < 20) {
+      if (randomPercent() < 10) {
         reject({ status: 500, message: 'server error' });
         return;
       }
@@ -100,38 +95,4 @@ export function createMockFormSubmission() {
   };
 
   callbacks.forEach((cb) => cb(formSubmission));
-}
-
-/**
- * Delete a liked form submission from the server.
- *
- * @params {id} message id
- * 
- * @return {Promise} resolves or rejects with a simple message.
- * We have a flaky server and requests will fail 10
- * percent of the time.
- */
-export async function deleteLikedFormSubmission(id) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // We have a really flakey server that has issues
-      if (randomPercent() < 20) {
-        reject({ status: 500, message: 'server error' });
-        return;
-      }
-
-      try {
-        const submissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
-        const updatedSubmissions = submissions.filter((msg) => msg.id !== id);
-        
-        localStorage.setItem(
-          'formSubmissions',
-          JSON.stringify(updatedSubmissions),
-        );
-        resolve({ status: 202, message: 'Success!' });
-      } catch (e) {
-        reject({ status: 500, message: e.message });
-      }
-    }, 3000 * (randomPercent() / 100));
-  });
 }
