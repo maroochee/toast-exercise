@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Header from './Header';
 import Content from './Content';
-import { onMessage, saveLikedFormSubmission, fetchLikedFormSubmissions } from './service/mockServer';
+import { onMessage, saveLikedFormSubmission, fetchLikedFormSubmissions, deleteLikedFormSubmission } from './service/mockServer';
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -24,15 +24,15 @@ function App() {
 
     // Fetch liked form submissions on component mount
     fetchLikedFormSubmissions()
-    .then((response) => {
-      if (response.status === 200) {
-        console.log(response.formSubmissions);        
-        setMessages(response.formSubmissions);
-      }
-    })
-    .catch((error) => {
-      console.error('Error fetching liked form submissions:', error);
-    });
+      .then((response) => {
+        if (response.status === 200) {
+          console.log(response.formSubmissions);        
+          setMessages(response.formSubmissions);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching liked form submissions:', error);
+      });
 
 
     return () => {};
@@ -60,11 +60,27 @@ function App() {
     setOpen(false);
   };
 
+  const handleDelete = (id) => {
+    setMessages((savedMessages) => {
+      const newMessages = savedMessages.filter((msg) => msg.id !== id);
+      deleteLikedFormSubmission(id)
+        .then((response) => {
+          if (response.status === 202) {
+            console.log('A submission was deleted successfully');
+          }
+        })
+        .catch((error) => {
+          console.error('Error in deleting a submission:', error);
+        });
+      return newMessages;
+    });
+  };
+
   return (
     <>
       <Header />
       <Container>
-        <Content messages={messages} />
+        <Content messages={messages}  onDelete={handleDelete}  />
       </Container>
       {currentMessage && (
         <Snackbar

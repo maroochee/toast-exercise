@@ -96,3 +96,37 @@ export function createMockFormSubmission() {
 
   callbacks.forEach((cb) => cb(formSubmission));
 }
+
+/**
+ * Delete a liked form submission from the server.
+ *
+ * @params {id} message id
+ * 
+ * @return {Promise} resolves or rejects with a simple message.
+ * We have a flaky server and requests will fail 10
+ * percent of the time.
+ */
+export async function deleteLikedFormSubmission(id) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // We have a really flakey server that has issues
+      if (randomPercent() < 10) {
+        reject({ status: 500, message: 'server error' });
+        return;
+      }
+
+      try {
+        const submissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
+        const updatedSubmissions = submissions.filter((msg) => msg.id !== id);
+        
+        localStorage.setItem(
+          'formSubmissions',
+          JSON.stringify(updatedSubmissions),
+        );
+        resolve({ status: 202, message: 'Success!' });
+      } catch (e) {
+        reject({ status: 500, message: e.message });
+      }
+    }, 3000 * (randomPercent() / 100));
+  });
+}

@@ -4,8 +4,10 @@ import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-export default function Content({messages}) {
+export default function Content({messages, onDelete}) {
   return (
     <Box sx={{marginTop: 3}}>
       <Typography variant="h4">Liked Form Submissions</Typography>
@@ -17,11 +19,28 @@ export default function Content({messages}) {
       ) : (
         <List>
           {messages.map((message, index) => (
-            <ListItem key={message.id} sx={{ marginTop: 1, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+            <ListItem
+            key={message.id}
+            sx={{
+              marginTop: 1,
+              backgroundColor: '#f5f5f5',
+              borderRadius: 1,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
               <ListItemText
                 primary={`${message.data.firstName} ${message.data.lastName}`}
                 secondary={message.data.email}
               />
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => onDelete(message.id)}
+              >
+                <DeleteIcon />
+              </IconButton>
             </ListItem>
           ))}
         </List>
