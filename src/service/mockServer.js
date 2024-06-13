@@ -71,7 +71,7 @@ export async function saveLikedFormSubmission(formSubmission) {
 
       try {
         const submissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
-        const updatedSubmissions = [formSubmission, ...submissions];
+        const updatedSubmissions = [...submissions, formSubmission];
 
         localStorage.setItem(
           'formSubmissions',

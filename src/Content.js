@@ -4,10 +4,11 @@ import Typography from '@mui/material/Typography';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-export default function Content({messages, onDelete, lastMessageRef}) {
+export default function Content({messages, onDelete, lastMessageRef, loading, loadingDeletes}) {
   return (
     <Box sx={{marginTop: 3}}>
       <Typography variant="h4">Liked Form Submissions</Typography>
@@ -37,13 +38,20 @@ export default function Content({messages, onDelete, lastMessageRef}) {
                     primary={`${message.data.firstName} ${message.data.lastName}`}
                     secondary={message.data.email}
                   />
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => onDelete(message.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={() => onDelete(message.id)}
+                      disabled={loadingDeletes[message.id]}
+                    >
+                      {loadingDeletes[message.id] ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <DeleteIcon />
+                      )}
+                    </IconButton>
+                  </Box>
                 </ListItem>
               );
             } else {
@@ -63,17 +71,29 @@ export default function Content({messages, onDelete, lastMessageRef}) {
                     primary={`${message.data.firstName} ${message.data.lastName}`}
                     secondary={message.data.email}
                   />
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() => onDelete(message.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton
+                      edge="end"
+                      aria-label="delete"
+                      onClick={() => onDelete(message.id)}
+                      disabled={loadingDeletes[message.id]}
+                    >
+                      {loadingDeletes[message.id] ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <DeleteIcon />
+                      )}
+                    </IconButton>
+                  </Box>
                 </ListItem>
               );
             }
-          })};
+          })}
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', padding: 2 }}>
+              <CircularProgress />
+            </Box>
+          )}
         </List>
       )}
     </Box>

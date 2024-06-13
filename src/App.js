@@ -3,23 +3,31 @@ import Container from '@mui/material/Container';
 import Snackbar from '@mui/material/Snackbar';
 import SnackbarContent from '@mui/material/SnackbarContent';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+
 import Header from './Header';
 import Content from './Content';
 import { onMessage, saveLikedFormSubmission, fetchLikedFormSubmissions, deleteLikedFormSubmission } from './service/mockServer';
 
 function App() {
-  const [messages, setMessages] = useState([]);
+  const [fetchedMessages, seFetchedMessages] = useState([]);
+  const [newMessages, setNewMessages] = useState([]);
   const [open, setOpen] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
   const [currentMessage, setCurrentMessage] = useState(null);
   const [page, setPage] = useState(1);
   const [lastFetchedCount, setLastFetchedCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null); // State for error messages
+  const [loadingLike, setLoadingLike] = useState(false);
+  const [loadingDeletes, setLoadingDeletes] = useState({});
+  const [error, setError] = useState(null); 
 
   const observer = useRef();
+
+  // TODO: implement retry logic in fetching messages
+  //       both in initial fetching and additional fetching
 
   useEffect(() => {
     const fetchInitialMessages = () => {
@@ -27,8 +35,7 @@ function App() {
       fetchLikedFormSubmissions(page)
         .then((response) => {
           if (response.status === 200) {
-            console.log(response.formSubmissions);        
-            setMessages(response.formSubmissions);
+            seFetchedMessages(response.formSubmissions);
             setLastFetchedCount(response.formSubmissions.length);
           }
         })
@@ -39,7 +46,7 @@ function App() {
         })
         .finally(() => {
           setLoading(false);
-        });;
+        });
     };
     const handleMessage = (message) => {
       setCurrentMessage(message);
@@ -59,7 +66,7 @@ function App() {
     fetchLikedFormSubmissions(page+1)
       .then((response) => {
         if (response.status === 200) {
-          setMessages((prevMessages) => [...prevMessages, ...response.formSubmissions]);
+          seFetchedMessages((prevMessages) => [...prevMessages, ...response.formSubmissions]);
           if (response.formSubmissions && response.formSubmissions.length > 0) {
             setPage((prevPage) => prevPage + 1);
           } else {
@@ -86,42 +93,57 @@ function App() {
   };
 
   const handleLike = (message) => {
+    setLoadingLike(true);
     message.data.liked = true;
     saveLikedFormSubmission(message)
       .then((response) => {
         if (response.status === 202) {
           console.log('Submission saved successfully');
-          // setLastFetchedCount(lastFetchedCount+1);
-          setMessages((savedMessages) => {
+          setLastFetchedCount(lastFetchedCount+1);
+          setNewMessages((savedMessages) => {
             const newMessages = [message, ...savedMessages];
             return newMessages;
           });
+          // seFetchedMessages((savedMessages) => {
+          //   const newMessages = [...savedMessages, message];
+          //   return newMessages;
+          // });
         }
       })
       .catch((error) => {
         setError('Error in saving submission: ' + error.message);
         console.error('Error in saving submission:', error);
         setErrorOpen(true);
+      })
+      .finally(() => {
+        setLoadingLike(false);
+        setOpen(false);
       });
-    setOpen(false);
   };
 
   const handleDelete = (id) => {
+    setLoadingDeletes((prev) => ({ ...prev, [id]: true }));
     deleteLikedFormSubmission(id)
       .then((response) => {
         if (response.status === 202) {
           console.log('A submission was deleted successfully');
-          setMessages((savedMessages) => {
-            const newMessages = savedMessages.filter((msg) => msg.id !== id);
-            return newMessages;
-          });
+          seFetchedMessages((savedMessages) => savedMessages.filter((msg) => msg.id !== id))
+          setNewMessages((savedMessages) => savedMessages.filter((msg) => msg.id !== id));;
         }
       })
       .catch((error) => {
         setError('Error in deleting a submission: ' + error.message);
         console.error('Error in deleting a submission:', error);
         setErrorOpen(true);
+      })
+      .finally(() => {
+        setLoadingDeletes((prev) => {
+          const newState = { ...prev };
+          delete newState[id];
+          return newState;
+        });
       });
+      // setNewMessages((savedMessages) => savedMessages.filter((msg) => msg.id !== id));
   };
 
   const lastMessageElementRef = (node) => {
@@ -135,11 +157,18 @@ function App() {
     if (node) observer.current.observe(node);
   };
 
+  // Merge new and fetched messages
+  const allMessages = [...fetchedMessages.filter(
+    fetchedMsg => !newMessages.some(newMsg => newMsg.id === fetchedMsg.id)
+  ), ...newMessages];
+
+
+
   return (
     <>
       <Header />
       <Container>
-        <Content messages={messages}  onDelete={handleDelete} lastMessageRef={lastMessageElementRef}  />
+        <Content messages={allMessages}  onDelete={handleDelete} lastMessageRef={lastMessageElementRef} loading={loading} loadingDeletes={loadingDeletes}  />
       </Container>
       {currentMessage && (
         <Snackbar
@@ -158,9 +187,20 @@ function App() {
                 </span>
               }
               action={[
-                <Button key="like" color="secondary" size="small" onClick={() => handleLike(currentMessage)}>
-                  LIKE
-                </Button>,
+                <React.Fragment key="like">
+                  <Button 
+                    color="primary" 
+                    size="small" 
+                    onClick={() => handleLike(currentMessage)}
+                    disabled={loadingLike === true}
+                  >
+                    {loadingLike === true ? (
+                      <CircularProgress size={24} color="primary" />
+                    ) : (
+                      'LIKE'
+                    )}
+                  </Button>
+                </React.Fragment>,
                 <IconButton key="close" aria-label="close" color="inherit" onClick={handleClose}>
                   <CloseIcon />
                 </IconButton>,
