@@ -1,6 +1,9 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 
 export default function Content({messages}) {
   return (
@@ -12,13 +15,16 @@ export default function Content({messages}) {
           No liked submissions yet.
         </Typography>
       ) : (
-        <Box>
+        <List>
           {messages.map((message, index) => (
-            <Typography key={message.id} variant="body1" sx={{ marginTop: 1 }}>
-              {message.data.email}  
-            </Typography>
+            <ListItem key={message.id} sx={{ marginTop: 1, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+              <ListItemText
+                primary={`${message.data.firstName} ${message.data.lastName}`}
+                secondary={message.data.email}
+              />
+            </ListItem>
           ))}
-        </Box>
+        </List>
       )}
     </Box>
   );
