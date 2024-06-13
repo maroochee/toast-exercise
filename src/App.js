@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Container from '@mui/material/Container';
+import Snackbar from '@mui/material/Snackbar';
+import SnackbarContent from '@mui/material/SnackbarContent';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import Header from './Header';
 import Content from './Content';
 import { onMessage, saveLikedFormSubmission, fetchLikedFormSubmissions } from './service/mockServer';
@@ -11,11 +16,6 @@ function App() {
 
   useEffect(() => {
     const handleMessage = (message) => {
-      setMessages((savedMessages) => {
-        const newMessages = [...savedMessages, message];
-        localStorage.setItem('formSubmissions', JSON.stringify(newMessages));
-        return newMessages;
-      });
       setCurrentMessage(message);
       setOpen(true);
     };
@@ -43,18 +43,19 @@ function App() {
   };
 
   const handleLike = (message) => {
-    saveLikedFormSubmission(message);
     setMessages((savedMessages) => {
       const newMessages = [...savedMessages, message];
       return newMessages;
     });
     saveLikedFormSubmission(message)
-    .then((response) => {
-      console.log('respons status', response.status)
-    })
-    .catch((error) => {
-      console.error('Error in saving submission:', error);
-    });
+      .then((response) => {
+        if (response.status === 202) {
+          console.log('Submission saved successfully');
+        }
+      })
+      .catch((error) => {
+        console.error('Error in saving submission:', error);
+      });
     setOpen(false);
   };
 
@@ -64,6 +65,33 @@ function App() {
       <Container>
         <Content messages={messages} />
       </Container>
+      {currentMessage && (
+        <Snackbar
+          open={open}
+          autoHideDuration={6000}
+          onClose={handleClose}
+          message={currentMessage.data.email}
+          >
+            <SnackbarContent
+              style={{ backgroundColor: '#333', color: '#fff' }}
+              message={
+                <span>
+                  <strong>{currentMessage.data.firstName} {currentMessage.data.lastName}</strong>
+                  <br />
+                  {currentMessage.data.email}
+                </span>
+              }
+              action={[
+                <Button key="like" color="secondary" size="small" onClick={() => handleLike(currentMessage)}>
+                  LIKE
+                </Button>,
+                <IconButton key="close" aria-label="close" color="inherit" onClick={handleClose}>
+                  <CloseIcon />
+                </IconButton>,
+              ]}
+            />
+          </Snackbar>
+      )}
     </>
   );
 }
