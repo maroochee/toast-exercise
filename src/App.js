@@ -43,6 +43,7 @@ function App() {
   };
 
   const handleLike = (message) => {
+    message.data.liked = true;
     setMessages((savedMessages) => {
       const newMessages = [...savedMessages, message];
       return newMessages;
