@@ -1,3 +1,18 @@
+# Notes
+
+* It includes all the requirements
+* Add Error toast on server errors
+* List all saved submissions  in descending order (last one first)
+* The newly saved submission is placed on top of the list with highlighing style
+* Added additonal features, like Delete and Infinite Scrolling, but revoked them because it requires mockServer.js modified
+* Run `npm start` and `npm test`
+
+<br>
+<br>
+<br>
+<br>
+
+
 # Toast Exercise
 
 Welcome to the toast exercise! We just got a new project from the Product team to implement
