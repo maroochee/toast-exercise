@@ -15,6 +15,7 @@ function App() {
   const [errorOpen, setErrorOpen] = useState(false);
   const [currentMessage, setCurrentMessage] = useState(null);
   const [page, setPage] = useState(1);
+  const [lastFetchedCount, setLastFetchedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null); // State for error messages
 
@@ -28,6 +29,7 @@ function App() {
           if (response.status === 200) {
             console.log(response.formSubmissions);        
             setMessages(response.formSubmissions);
+            setLastFetchedCount(response.formSubmissions.length);
           }
         })
         .catch((error) => {
@@ -51,14 +53,18 @@ function App() {
   }, []);
 
   const fetchMoreMessages = () => {
-    if (loading) return;
+    if (loading || !lastFetchedCount) return;
     setLoading(true);
 
     fetchLikedFormSubmissions(page+1)
       .then((response) => {
         if (response.status === 200) {
           setMessages((prevMessages) => [...prevMessages, ...response.formSubmissions]);
-          setPage((prevPage) => prevPage + 1);
+          if (response.formSubmissions && response.formSubmissions.length > 0) {
+            setPage((prevPage) => prevPage + 1);
+          } else {
+            setLastFetchedCount(response.formSubmissions.length);
+          }
         }
       })
       .catch((error) => {
@@ -81,14 +87,15 @@ function App() {
 
   const handleLike = (message) => {
     message.data.liked = true;
-    setMessages((savedMessages) => {
-      const newMessages = [...savedMessages, message];
-      return newMessages;
-    });
     saveLikedFormSubmission(message)
       .then((response) => {
         if (response.status === 202) {
           console.log('Submission saved successfully');
+          // setLastFetchedCount(lastFetchedCount+1);
+          setMessages((savedMessages) => {
+            const newMessages = [message, ...savedMessages];
+            return newMessages;
+          });
         }
       })
       .catch((error) => {
@@ -100,21 +107,21 @@ function App() {
   };
 
   const handleDelete = (id) => {
-    setMessages((savedMessages) => {
-      const newMessages = savedMessages.filter((msg) => msg.id !== id);
-      deleteLikedFormSubmission(id)
-        .then((response) => {
-          if (response.status === 202) {
-            console.log('A submission was deleted successfully');
-          }
-        })
-        .catch((error) => {
-          setError('Error in deleting a submission: ' + error.message);
-          console.error('Error in deleting a submission:', error);
-          setErrorOpen(true);
-        });
-      return newMessages;
-    });
+    deleteLikedFormSubmission(id)
+      .then((response) => {
+        if (response.status === 202) {
+          console.log('A submission was deleted successfully');
+          setMessages((savedMessages) => {
+            const newMessages = savedMessages.filter((msg) => msg.id !== id);
+            return newMessages;
+          });
+        }
+      })
+      .catch((error) => {
+        setError('Error in deleting a submission: ' + error.message);
+        console.error('Error in deleting a submission:', error);
+        setErrorOpen(true);
+      });
   };
 
   const lastMessageElementRef = (node) => {

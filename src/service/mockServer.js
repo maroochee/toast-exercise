@@ -29,7 +29,7 @@ export async function fetchLikedFormSubmissions(page=1) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flaky server that has issues
-      if (randomPercent() < 50) {
+      if (randomPercent() < 20) {
         reject({ status: 500, message: 'server error' });
         return;
       }
@@ -64,14 +64,14 @@ export async function saveLikedFormSubmission(formSubmission) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flakey server that has issues
-      if (randomPercent() < 50) {
+      if (randomPercent() < 20) {
         reject({ status: 500, message: 'server error' });
         return;
       }
 
       try {
         const submissions = JSON.parse(localStorage.getItem('formSubmissions')) || [];
-        const updatedSubmissions = [...submissions, formSubmission];
+        const updatedSubmissions = [formSubmission, ...submissions];
 
         localStorage.setItem(
           'formSubmissions',
@@ -115,7 +115,7 @@ export async function deleteLikedFormSubmission(id) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // We have a really flakey server that has issues
-      if (randomPercent() < 50) {
+      if (randomPercent() < 20) {
         reject({ status: 500, message: 'server error' });
         return;
       }
